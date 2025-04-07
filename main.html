@@ -13,6 +13,35 @@
 
     h1 {
       font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .form-container {
+      margin-top: 30px;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px;
+      width: 200px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 2px solid black;
+      border-radius: 5px;
+      background: white;
+    }
+
+    button:hover {
+      background-color: #eee;
     }
 
     .board {
@@ -62,49 +91,62 @@
 <body>
 
   <h1>Tic Tac Toe</h1>
-  <div id="message">jaindiv, you're up</div>
 
-  <div class="board" id="board">
-    <div class="cell" id="1"></div>
-    <div class="cell" id="2"></div>
-    <div class="cell" id="3"></div>
-    <div class="cell" id="4"></div>
-    <div class="cell" id="5"></div>
-    <div class="cell" id="6"></div>
-    <div class="cell" id="7"></div>
-    <div class="cell" id="8"></div>
-    <div class="cell" id="9"></div>
+  <!-- Player Name Input -->
+  <div class="form-container" id="playerForm">
+    <div>
+      <label>Player 1</label><br>
+      <input type="text" id="player1" placeholder="enter name" />
+    </div>
+    <div>
+      <label>Player 2</label><br>
+      <input type="text" id="player2" placeholder="enter name" />
+    </div>
+    <button onclick="startGame()">Start Game</button>
   </div>
 
-  <button id="restartBtn">Restart Game</button>
+  <!-- Game Section -->
+  <div class="hidden" id="gameSection">
+    <div id="message"></div>
+    <div class="board" id="board">
+      <div class="cell" id="1"></div>
+      <div class="cell" id="2"></div>
+      <div class="cell" id="3"></div>
+      <div class="cell" id="4"></div>
+      <div class="cell" id="5"></div>
+      <div class="cell" id="6"></div>
+      <div class="cell" id="7"></div>
+      <div class="cell" id="8"></div>
+      <div class="cell" id="9"></div>
+    </div>
+    <button id="restartBtn" onclick="restartGame()">Restart Game</button>
+  </div>
 
   <script>
-    const cells = document.querySelectorAll('.cell');
-    const message = document.getElementById('message');
-    const restartBtn = document.getElementById('restartBtn');
-
     let board = Array(9).fill('');
-    let currentPlayer = 'jaindiv';
-    let symbol = 'O';
+    let currentPlayer = '';
+    let currentSymbol = 'O';
+    let player1Name = '';
+    let player2Name = '';
     let isGameActive = true;
 
     const winCombos = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Rows
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],  // Columns
-      [0, 4, 8], [2, 4, 6]              // Diagonals
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
     ];
 
-    function checkWin(sym) {
-      for (let combo of winCombos) {
-        if (combo.every(index => board[index] === sym)) {
-          combo.forEach(index => {
-            document.getElementById(index + 1).style.backgroundColor = 'purple';
-            document.getElementById(index + 1).style.color = 'white';
-          });
-          return true;
-        }
-      }
-      return false;
+    function startGame() {
+      player1Name = document.getElementById("player1").value || "Player 1";
+      player2Name = document.getElementById("player2").value || "Player 2";
+      currentPlayer = player1Name;
+
+      document.getElementById("playerForm").classList.add("hidden");
+      document.getElementById("gameSection").classList.remove("hidden");
+      document.getElementById("message").textContent = `${currentPlayer}, you're up`;
+
+      document.querySelectorAll('.cell').forEach(cell =>
+        cell.addEventListener('click', handleClick));
     }
 
     function handleClick(e) {
@@ -113,44 +155,56 @@
 
       if (board[index] !== '' || !isGameActive) return;
 
-      board[index] = symbol;
-      e.target.textContent = symbol;
+      board[index] = currentSymbol;
+      e.target.textContent = currentSymbol;
 
-      if (checkWin(symbol)) {
-        message.textContent = `${currentPlayer}, congratulations you won!`;
+      if (checkWin(currentSymbol)) {
+        document.getElementById("message").textContent = `${currentPlayer}, congratulations you won!`;
         isGameActive = false;
-        restartBtn.style.display = 'inline-block';
+        document.getElementById("restartBtn").style.display = 'inline-block';
         return;
       }
 
       if (board.every(cell => cell !== '')) {
-        message.textContent = "It's a draw!";
+        document.getElementById("message").textContent = "It's a draw!";
         isGameActive = false;
-        restartBtn.style.display = 'inline-block';
+        document.getElementById("restartBtn").style.display = 'inline-block';
         return;
       }
 
-      // Toggle player (optional if 2-player)
-      symbol = symbol === 'O' ? 'X' : 'O';
-      currentPlayer = currentPlayer === 'jaindiv' ? 'opponent' : 'jaindiv'; // You can customize this
-      message.textContent = `${currentPlayer}, you're up`;
+      // Toggle player
+      currentSymbol = currentSymbol === 'O' ? 'X' : 'O';
+      currentPlayer = currentPlayer === player1Name ? player2Name : player1Name;
+      document.getElementById("message").textContent = `${currentPlayer}, you're up`;
     }
 
-    cells.forEach(cell => cell.addEventListener('click', handleClick));
+    function checkWin(symbol) {
+      for (let combo of winCombos) {
+        if (combo.every(i => board[i] === symbol)) {
+          combo.forEach(i => {
+            document.getElementById(i + 1).style.backgroundColor = 'purple';
+            document.getElementById(i + 1).style.color = 'white';
+          });
+          return true;
+        }
+      }
+      return false;
+    }
 
-    restartBtn.addEventListener('click', () => {
+    function restartGame() {
       board = Array(9).fill('');
       isGameActive = true;
-      symbol = 'O';
-      currentPlayer = 'jaindiv';
-      message.textContent = `${currentPlayer}, you're up`;
-      cells.forEach(cell => {
+      currentSymbol = 'O';
+      currentPlayer = player1Name;
+      document.getElementById("message").textContent = `${currentPlayer}, you're up`;
+      document.getElementById("restartBtn").style.display = 'none';
+
+      document.querySelectorAll('.cell').forEach(cell => {
         cell.textContent = '';
         cell.style.backgroundColor = 'pink';
         cell.style.color = 'black';
       });
-      restartBtn.style.display = 'none';
-    });
+    }
   </script>
 
 </body>
